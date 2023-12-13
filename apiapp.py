@@ -56,15 +56,15 @@ def PlayTimeGenre(genero: str) -> Dict[str, int]:
     return {f"Año de lanzamiento con más horas jugadas para {genero}" : max_year}
 
 # Supongamos que 'df' es tu DataFrame
-df = pd.read_csv('2dafuncion.csv')
+df2 = pd.read_csv('2dafuncion.csv')
 
 # Limpia los valores NaN en la columna de géneros
-df['genres'] = df['genres'].replace(np.nan, '')
+df2['genres'] = df2['genres'].replace(np.nan, '')
 
 @app.get("/UserForGenre/{genero}")
 async def read_user_for_genre(genero: str):
     # Filtramos el dataframe por el género dado
-    df_genre = df[df['genres'].str.contains(genero)]
+    df_genre = df2[df2['genres'].str.contains(genero)]
     
     # Agrupamos por usuario y sumamos las horas jugadas
     df_grouped = df_genre.groupby('user_id')['playtime_forever'].sum().reset_index()
