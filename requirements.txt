@@ -4,3 +4,4 @@ numpy
 uvicorn
 nest_asyncio
 httpx
+starlette
