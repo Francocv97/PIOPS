@@ -5,4 +5,4 @@ uvicorn
 nest_asyncio
 httpx
 starlette
-sklearn
+scikit-learn
