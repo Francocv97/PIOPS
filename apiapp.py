@@ -6,19 +6,19 @@ from fastapi import FastAPI
 from starlette.testclient import TestClient
 import numpy as np
 from collections import Counter
-
+import gzip
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-# Ruta a tu archivo JSON
-archivo = 'output_steam_games_limpio.json'
+# Ruta a tu archivo JSON comprimido
+archivo = 'output_steam_games_limpio.json.gz'
 
 # Lista para guardar cada fila
 lista = []
 
-with open(archivo, 'r', encoding='utf-8') as file:
-    data = file.read()
+with gzip.open(archivo, 'r') as file:
+    data = file.read().decode('utf-8')
     if data[0] == '[':
         # Los datos están en formato de array
         lista = json.loads(data)
