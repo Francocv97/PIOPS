@@ -93,8 +93,9 @@ async def read_user_for_genre(genero: str):
     
     return {"Usuario con más horas jugadas para Género {}".format(genero) : max_playtime_user, "Horas jugadas": playtime_per_year}
 
-# Cargar el archivo csv
-df_funcion3 = pd.read_csv('df_funcion3.csv')
+# Descomprimir el archivo csv
+with gzip.open('df_funcion3.csv.gz', 'rt') as f:
+    df_funcion3 = pd.read_csv(f)
 
 @app.get("/UsersRecommend/{year}")
 async def get_recommend(year: int):
@@ -146,8 +147,6 @@ def read_sentiment_analysis(year: int):
     sentiment_counts = df_year['sentiment_analysis'].value_counts().to_dict()
     sentiment_dict = {'Negative': sentiment_counts.get(0, 0), 'Neutral': sentiment_counts.get(1, 0), 'Positive': sentiment_counts.get(2, 0)}
     return sentiment_dict
-
-
 
 
 # Carga los datos para el primer modelo de recomendación
