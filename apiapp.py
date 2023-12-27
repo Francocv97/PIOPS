@@ -170,46 +170,6 @@ def read_sentiment_analysis(year: int):
     return sentiment_dict
 
 
-# Elimina las filas con valores NaN en la columna de juegos
-df1 = df1.dropna(subset=['title'])
-
-# Crea una matriz de características utilizando CountVectorizer
-count = CountVectorizer()
-count_matrix = count.fit_transform(df1['title'])
-
-# Calcula la similitud del coseno
-cosine_sim_titulo = cosine_similarity(count_matrix, count_matrix)
-
-# Crea una serie para mapear los índices de los juegos a sus títulos
-indices_titulo = pd.Series(df1.index, index=df1['title']).drop_duplicates()
-
-def recomendacion_juego(titulo, cosine_sim=cosine_sim_titulo):
-    # Obtiene el índice del juego que coincide con el título
-    idx = indices_titulo[titulo]
-
-    # Obtiene las puntuaciones de similitud por pares de todos los juegos con ese juego
-    sim_scores = list(enumerate(cosine_sim[idx]))
-
-    # Ordena los juegos en función de las puntuaciones de similitud
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-
-    # Obtiene las puntuaciones de los 5 juegos más similares
-    sim_scores = sim_scores[1:6]
-
-    # Obtiene los índices de los juegos
-    juego_indices = [i[0] for i in sim_scores]
-
-    # Devuelve los 5 juegos más similares
-    return df1['title'].iloc[juego_indices]
-
-@app.get("/recomendacion_titulo/{titulo}")
-def get_recomendacion_titulo(titulo: str):
-    # Llama a la función de recomendación de juego
-    juegos_recomendados = recomendacion_juego(titulo)
-
-    # Devuelve los juegos recomendados
-    return {"Juegos recomendados para el título {}: {}".format(titulo, list(juegos_recomendados))}
-
 
 
 # http://localhost:8000/UserForGenre/Action
