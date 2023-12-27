@@ -12,7 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 # Ruta a tu archivo JSON comprimido
-archivo = 'output_steam_games_limpio.json.gz'
+archivo = 'output_steam_games_limpio_reducido.json.gz'
 
 # Lista para guardar cada fila
 lista = []
@@ -42,15 +42,6 @@ if 'release_date' in df1.columns:
 # Supongamos que 'df' es tu DataFrame
 df2 = pd.read_csv('2dafuncion.csv')
 
-# Verificar si 'release_date' existe en df2
-if 'release_date' in df2.columns:
-    # Asegúrate de que 'release_date' sea un objeto datetime
-    df2['release_date'] = pd.to_datetime(df2['release_date'], errors='coerce', format='%Y-%m-%d')
-
-    # Calcular las horas desde el lanzamiento hasta la fecha actual
-    now = datetime.now()
-    df2['hours_since_release'] = (now - df2['release_date']).dt.total_seconds() / 3600
-
 # Limpia los valores NaN en la columna de géneros
 df2['genres'] = df2['genres'].replace(np.nan, '')
 
@@ -78,20 +69,49 @@ def PlayTimeGenre(genero: str) -> Dict[str, int]:
 
 @app.get("/UserForGenre/{genero}")
 async def read_user_for_genre(genero: str):
-    # Filtramos el dataframe por el género dado
-    df_genre = df2[df2['genres'].str.contains(genero)]
-    
+    # Ruta a tu archivo JSON comprimido
+    archivo = 'output_steam_games_limpio_reducido.json.gz'
+
+    # Lista para guardar cada fila
+    lista = []
+
+    with gzip.open(archivo, 'r') as file:
+        data = file.read().decode('utf-8')
+        if data[0] == '[':
+            # Los datos están en formato de array
+            lista = json.loads(data)
+        else:
+            # Los datos están separados por nuevas líneas
+            for line in data.splitlines():
+                lista.append(json.loads(line))
+
+    # Crear un DataFrame a partir de la lista
+    df1 = pd.DataFrame(lista)
+
+    # Asegúrate de que 'genres' es una lista
+    df1['genres'] = df1['genres'].apply(lambda x: x if isinstance(x, list) else [x])
+
+    # Crea una nueva columna con el primer género
+    df1['primer_genero'] = df1['genres'].str[0]
+
+    # Elimina las filas con valores nulos en la columna 'primer_genero'
+    df1 = df1.dropna(subset=['primer_genero'])
+
+    # Ahora puedes filtrar usando 'primer_genero'
+    df_genre = df1[df1['primer_genero'].str.contains(genero)]
+   
     # Agrupamos por usuario y sumamos las horas jugadas
-    df_grouped = df_genre.groupby('user_id')['playtime_forever'].sum().reset_index()
+    df_grouped = df2.groupby('user_id')['playtime_forever'].sum().reset_index()
     
     # Encontramos el usuario con más horas jugadas
     max_playtime_user = df_grouped[df_grouped['playtime_forever'] == df_grouped['playtime_forever'].max()]['user_id'].values[0]
     
     # Creamos un dataframe con las horas jugadas por año
-    df_genre['year'] = pd.to_datetime(df_genre['posted_date']).dt.year
-    playtime_per_year = df_genre.groupby('year')['playtime_forever'].sum().reset_index().to_dict('records')
+    df2['year'] = pd.to_datetime(df2['posted_date']).dt.year
+    playtime_per_year = df2.groupby('year')['playtime_forever'].sum().reset_index().to_dict('records')
     
     return {"Usuario con más horas jugadas para Género {}".format(genero) : max_playtime_user, "Horas jugadas": playtime_per_year}
+
 
 # Descomprimir el archivo csv
 with gzip.open('df_funcion3.csv.gz', 'rt') as f:
