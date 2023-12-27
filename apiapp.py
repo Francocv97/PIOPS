@@ -117,6 +117,7 @@ async def read_user_for_genre(genero: str):
 with gzip.open('df_funcion3.csv.gz', 'rt') as f:
     df_funcion3 = pd.read_csv(f)
 
+
 @app.get("/UsersRecommend/{year}")
 async def get_recommend(year: int):
     # Crear un contador para los juegos
@@ -169,21 +170,18 @@ def read_sentiment_analysis(year: int):
     return sentiment_dict
 
 
-# Carga los datos para el primer modelo de recomendación
-df_titulo = pd.read_csv('output_steam_games_final.csv')
-
 # Elimina las filas con valores NaN en la columna de juegos
-df_titulo = df_titulo.dropna(subset=['title'])
+df1 = df1.dropna(subset=['title'])
 
 # Crea una matriz de características utilizando CountVectorizer
 count = CountVectorizer()
-count_matrix = count.fit_transform(df_titulo['title'])
+count_matrix = count.fit_transform(df1['title'])
 
 # Calcula la similitud del coseno
 cosine_sim_titulo = cosine_similarity(count_matrix, count_matrix)
 
 # Crea una serie para mapear los índices de los juegos a sus títulos
-indices_titulo = pd.Series(df_titulo.index, index=df_titulo['title']).drop_duplicates()
+indices_titulo = pd.Series(df1.index, index=df1['title']).drop_duplicates()
 
 def recomendacion_juego(titulo, cosine_sim=cosine_sim_titulo):
     # Obtiene el índice del juego que coincide con el título
@@ -202,7 +200,7 @@ def recomendacion_juego(titulo, cosine_sim=cosine_sim_titulo):
     juego_indices = [i[0] for i in sim_scores]
 
     # Devuelve los 5 juegos más similares
-    return df_titulo['title'].iloc[juego_indices]
+    return df1['title'].iloc[juego_indices]
 
 @app.get("/recomendacion_titulo/{titulo}")
 def get_recomendacion_titulo(titulo: str):
