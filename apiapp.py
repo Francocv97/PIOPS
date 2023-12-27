@@ -210,40 +210,6 @@ def get_recomendacion_titulo(titulo: str):
     # Devuelve los juegos recomendados
     return {"Juegos recomendados para el título {}: {}".format(titulo, list(juegos_recomendados))}
 
-# Carga los datos para el segundo modelo de recomendación
-df_usuario = pd.read_csv('2dafuncion_final.csv')
-
-# Crea la matriz de utilidad usando 'playtime_forever' como valor
-utilidad = df_usuario.pivot_table(index='user_id', columns='title', values='playtime_forever')
-
-# Calcula la similitud del coseno
-similitud_usuario = cosine_similarity(utilidad.fillna(0))
-
-# Crea un mapeo de ID de usuario a índice de matriz
-user_id_to_index = {user_id: index for index, user_id in enumerate(utilidad.index)}
-
-def recomendacion_usuario(user_id):
-    # Obtiene el índice de la matriz para el ID de usuario
-    user_index = user_id_to_index[user_id]
-    # Obtiene los índices de los 6 usuarios más similares
-    indices_similares = np.argsort(similitud_usuario[user_index])[-7:-1][::-1]
-    # Encuentra los juegos que les gustaron a los usuarios similares
-    juegos_recomendados = utilidad.iloc[indices_similares].mean().sort_values(ascending=False).index[:6]
-    # Excluye el primer juego (el más recomendado) y devuelve los siguientes 5
-    return juegos_recomendados[1:]
-
-@app.get("/recomendacion_usuario/{user_id}")
-def get_recomendacion_usuario(user_id: str):
-    if user_id in user_id_to_index:
-        # Llama a la función de recomendación de usuario
-        juegos_recomendados = recomendacion_usuario(user_id)
-
-        # Devuelve los juegos recomendados
-        return {"Juegos recomendados para el usuario {}: {}".format(user_id, list(juegos_recomendados))}
-    else:
-        return {"error": "El ID de usuario {} no se encuentra en los datos.".format(user_id)}
-
-
 
 
 # http://localhost:8000/UserForGenre/Action
