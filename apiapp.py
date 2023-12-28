@@ -1,53 +1,54 @@
-import json
-import pandas as pd
-import gzip
-import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.neighbors import NearestNeighbors
 from fastapi import FastAPI
+import pandas as pd
+import json
+import gzip
 
 app = FastAPI()
 
+# Ruta a tu archivo JSON comprimido
 archivo = 'output_steam_games_limpio_reducido.json.gz'
 
-def read_json_gzip(file_path):
-    with gzip.open(file_path, 'r') as file:
-        data = file.read().decode('utf-8')
-        if data[0] == '[':
-            for item in json.loads(data):
-                yield item
-        else:
-            for line in data.splitlines():
-                yield json.loads(line)
-
 # Lista para guardar cada fila
-lista = list(read_json_gzip(archivo))
+lista = []
 
-# Crea un DataFrame a partir de la lista
+with gzip.open(archivo, 'r') as file:
+    data = file.read().decode('utf-8')
+    if data[0] == '[':
+        # Los datos están en formato de array
+        lista = json.loads(data)
+    else:
+        # Los datos están separados por nuevas líneas
+        for line in data.splitlines():
+            lista.append(json.loads(line))
+
+# Crear un DataFrame a partir de la lista
 df1 = pd.DataFrame(lista)
 
 # Elimina las filas con valores NaN en la columna de juegos
 df1 = df1.dropna(subset=['title'])
 
-# Crea una matriz de características utilizando CountVectorizer
-count = CountVectorizer()
-count_matrix = count.fit_transform(df1['title'])
+# Usa solo el 10% de los datos
+df1 = df1.sample(frac=0.1, random_state=1)
 
-# Crea una serie para mapear los índices de los juegos a sus títulos
-indices_titulo = pd.Series(df1.index, index=df1['title']).drop_duplicates()
+# Crea una matriz de características utilizando TfidfVectorizer
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(df1['title'])
 
-# Libera memoria no utilizada
-del lista
-
-cosine_sim_titulo = cosine_similarity(count_matrix, count_matrix)
+# Entrena un modelo NearestNeighbors
+nbrs = NearestNeighbors(n_neighbors=6, algorithm='ball_tree').fit(X)
 
 @app.get("/recomendacion_titulo/{titulo}")
 def get_recomendacion_titulo(titulo: str):
-    idx = indices_titulo[titulo]
-    sim_scores = np.argsort(cosine_sim_titulo[idx])[::-1][1:6]
-    juegos_recomendados = df1['title'].iloc[sim_scores]
-    
-    return {"Juegos recomendados para el título {}: {}".format(titulo, list(juegos_recomendados))}
+    # Transforma el título en un vector
+    titulo_vec = vectorizer.transform([titulo])
+
+    # Obtiene los índices de los 5 juegos más cercanos
+    _, indices = nbrs.kneighbors(titulo_vec)
+
+    # Devuelve los juegos recomendados
+    return {"Juegos recomendados para el título {}: {}".format(titulo, list(df1['title'].iloc[indices[0][1:]]))}
 
 
 
