@@ -1,6 +1,6 @@
 # Primer Proyecto Individual MLOps
 
-¡Bienvenido al proyecto de Machine Learning Operations (MLOps)! Este proyecto aborda el ciclo de vida completo de un proyecto de Machine Learning, desde la ingeniería de datos hasta la implementación de una API para consumir las consultas y recomendaciones. A continuación, encontrarás una guía detallada sobre cómo se aborda cada aspecto del proyecto.
+Este proyecto aborda el ciclo de vida completo de un proyecto de Machine Learning, desde la ingeniería de datos hasta la implementación de una API para consumir las consultas y recomendaciones. A continuación, encontrarás una guía detallada sobre cómo se aborda cada aspecto del proyecto.
 
 
 ## Descripción del Problema
