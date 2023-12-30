@@ -1,17 +1,17 @@
-from sklearn.neighbors import NearestNeighbors
+from collections import Counter
 from datetime import datetime
+import gzip
+import json
 import numpy as np
 from typing import List, Dict
-from fastapi import FastAPI
+
 import pandas as pd
-import json
-import gzip
-from collections import Counter
-import gzip
-from sklearn.feature_extraction.text import CountVectorizer
+from fastapi import FastAPI
+
+from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
+
 
 
 app = FastAPI()
@@ -45,7 +45,7 @@ if 'release_date' in df1.columns:
     df1['hours_since_release'] = (now - df1['release_date']).dt.total_seconds() / 3600
 
 # Supongamos que 'df' es tu DataFrame
-df2 = pd.read_csv('2dafuncion.csv')
+df2 = pd.read_csv('Funcion2.csv')
 
 # Limpia los valores NaN en la columna de géneros
 df2['genres'] = df2['genres'].replace(np.nan, '')
@@ -119,7 +119,7 @@ async def read_user_for_genre(genero: str):
 
 
 # Descomprimir el archivo csv
-with gzip.open('df_funcion3.csv.gz', 'rt') as f:
+with gzip.open('Funcion3_final.csv.gz', 'rt') as f:
     df_funcion3 = pd.read_csv(f)
 
 
@@ -165,7 +165,7 @@ async def get_not_recommend(year: int):
 
 
 # Cargar el DataFrame desde el archivo CSV
-df_userid_recommend = pd.read_csv('df_userid_recommend.csv')
+df_userid_recommend = pd.read_csv('Funcion5.csv')
 
 @app.get("/Sentiment_analysis/{year}")
 def read_sentiment_analysis(year: int):
@@ -199,7 +199,7 @@ def get_recomendacion_titulo(titulo: str):
     return {"Juegos recomendados para el título {}: {}".format(titulo, list(df1['title'].iloc[indices[0][1:]]))}
 
 # Carga los datos para el segundo modelo de recomendación
-df_usuario = pd.read_csv('2dafuncion_final.csv')
+df_usuario = pd.read_csv('Funcion2_final.csv')
 
 # Reducción de datos al 10%
 df_usuario = df_usuario.sample(frac=0.1, random_state=42)
